@@ -249,6 +249,7 @@ public class NewlineScript : MonoBehaviour {
                 }
                 if (!invalid)
                 {
+                    yield return null;
                     KMSelectable pressedButton;
                     int input = int.Parse(parameters[1]) % 100;
                     if (parameters[0] == "LEFT")
@@ -258,13 +259,14 @@ public class NewlineScript : MonoBehaviour {
                     else pressedButton = rightBtn;
                     for (int i = 0; i < input; i++)
                     {
-                        yield return new WaitForSecondsRealtime(0.1f);
                         pressedButton.OnInteract();
+                        yield return new WaitForSecondsRealtime(0.1f);
                     }
                 }
             }
             else if ((cmdIndex >= 2) && (parameters.Length == 1))
             {
+                yield return null;
                 enterBtn.OnInteract();
                 yield return new WaitForSecondsRealtime(0.1f);
             }
