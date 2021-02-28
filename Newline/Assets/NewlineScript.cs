@@ -223,7 +223,7 @@ public class NewlineScript : MonoBehaviour {
     }
 
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use !{0} to do something.";
+    private readonly string TwitchHelpMessage = @"Use '!{0} left 10' to move the cursor left 10 times. Use '!{0} enter' to submit the answer.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand (string Command)
