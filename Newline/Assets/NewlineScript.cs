@@ -51,12 +51,12 @@ public class NewlineScript : MonoBehaviour {
     string displayString;
     string overlayString;
     string placeholderString;
+    private Coroutine Blink;
 
 
-
-    void Awake () {
+    void Awake ()
+    {
         moduleId = moduleIdCounter++;
-
         enterBtn.OnInteract += delegate () { Enter(); return false; };
         leftBtn.OnInteract += delegate () { LeftPress(); return false; };
         rightBtn.OnInteract += delegate () { RightPress(); return false; };
@@ -69,7 +69,7 @@ public class NewlineScript : MonoBehaviour {
         DisplayInfo();
         GenerateOverlay();
         overlayText.text = overlayString;
-        StartCoroutine(CursorBlink());
+        Blink = StartCoroutine(CursorBlink());
     }
 
     void ChooseString()
@@ -82,7 +82,7 @@ public class NewlineScript : MonoBehaviour {
         firstParaString = firstParaArray.Join(" ");
         secondParaArray = paragraphs[startingPara + 1].Take(numWordsFromSecond).ToArray();
         secondParaString = secondParaArray.Join(" ");
-        fullString = firstParaString + " " + secondParaString;
+        fullString = firstParaString + " " + secondParaString + " ";
         fullStringArray = fullString.Split(' ');
         for (int i = 0; i < fullString.Length; i++)
         {
@@ -188,24 +188,24 @@ public class NewlineScript : MonoBehaviour {
 
     void LeftPress()
     {
+        StopCoroutine(Blink);
+        Blink = StartCoroutine(CursorBlink());
         Audio.PlaySoundAtTransform("keyPress", transform);
         leftBtn.AddInteractionPunch(0.1f);
         if (moduleSolved || (posInString == 0))
-        {
             return;
-        }
         posInString--;
         GenerateOverlay();
         DisplayInfo();
     }
     void RightPress()
     {
+        StopCoroutine(Blink);
+        Blink = StartCoroutine(CursorBlink());
         leftBtn.AddInteractionPunch(0.2f);
         Audio.PlaySoundAtTransform("keyPress", transform);
         if (moduleSolved || (posInString == fullStringArray.Length - 2))
-        {
             return;
-        }
         posInString++;
         GenerateOverlay();
         DisplayInfo();
@@ -213,12 +213,13 @@ public class NewlineScript : MonoBehaviour {
 
     IEnumerator CursorBlink()
     {
+        overlay.SetActive(true);
         while (!moduleSolved)
         {
             yield return new WaitForSecondsRealtime(0.75f);
-            overlay.SetActive(true);
-            yield return new WaitForSecondsRealtime(0.75f);
             overlay.SetActive(false);
+            yield return new WaitForSecondsRealtime(0.75f);
+            overlay.SetActive(true);
         }
     }
 
@@ -226,49 +227,24 @@ public class NewlineScript : MonoBehaviour {
     private readonly string TwitchHelpMessage = @"Use '!{0} left 10' to move the cursor left 10 times. Use '!{0} enter' to submit the answer.";
     #pragma warning restore 414
 
-    IEnumerator ProcessTwitchCommand (string Command)
+    IEnumerator ProcessTwitchCommand (string input)
     {
-        string[] parameters = Command.Trim().ToUpperInvariant().Split(' ');
-        string[] validCmds = new string[] { "LEFT", "RIGHT", "ENTER", "SUBMIT", "RETURN" };
-        if (!validCmds.Contains(parameters[0]))
+        string Command = input.Trim().ToUpperInvariant();
+        List<string> parameters = Command.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        if (new string[] { "ENTER", "SUBMIT", "RETURN", "RTN", "BREAK", "NEWLINE", "CHECK" }.Contains(Command))
         {
-            yield return "sendtochaterror";
+            enterBtn.OnInteract();
+            yield return new WaitForSeconds(0.1f);
         }
-        else
+        else if ((parameters[0] == "LEFT" || parameters[0] == "RIGHT") && parameters.Count == 2 && parameters[1].All(x => "1234567890".Contains(x)))
         {
-            int cmdIndex = Array.IndexOf(validCmds, parameters[0]);
-            if ((cmdIndex < 2) && (parameters.Length == 2))
+            yield return null;
+            KMSelectable whichButton = (parameters[0] == "LEFT") ? leftBtn : rightBtn;
+            for (int i = 0; i < int.Parse(parameters[1]); i++)
             {
-                bool invalid = false;
-                for (int i = 0; i < parameters[1].Length; i++)
-                {
-                    if (!"0123456789".Contains(parameters[1][i]))
-                    {
-                        invalid = true;
-                    }
-                }
-                if (!invalid)
-                {
-                    yield return null;
-                    KMSelectable pressedButton;
-                    int input = int.Parse(parameters[1]) % 100;
-                    if (parameters[0] == "LEFT")
-                    {
-                        pressedButton = leftBtn;
-                    }
-                    else pressedButton = rightBtn;
-                    for (int i = 0; i < input; i++)
-                    {
-                        pressedButton.OnInteract();
-                        yield return new WaitForSecondsRealtime(0.1f);
-                    }
-                }
-            }
-            else if ((cmdIndex >= 2) && (parameters.Length == 1))
-            {
-                yield return null;
-                enterBtn.OnInteract();
-                yield return new WaitForSecondsRealtime(0.1f);
+                whichButton.OnInteract();
+                yield return "trycancel how the fuck are you doing this which one of you fuckers put that large of a number in that you need to !cancel. What.";
+                yield return new WaitForSeconds(0.1f);
             }
         }
     }
@@ -278,18 +254,12 @@ public class NewlineScript : MonoBehaviour {
         while (!moduleSolved)
         {
             if (posInString == answerPosition)
-            {
                 enterBtn.OnInteract();
-            }
             if (posInString < answerPosition)
-            {
                 rightBtn.OnInteract();
-            }
             if (posInString > answerPosition)
-            {
                 leftBtn.OnInteract();
-            }
-                yield return new WaitForSecondsRealtime(0.1f);
+            yield return new WaitForSecondsRealtime(0.1f);
         }
     }
 }
