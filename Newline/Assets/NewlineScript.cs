@@ -21,7 +21,7 @@ public class NewlineScript : MonoBehaviour {
     static int moduleIdCounter = 1;
     int moduleId;
     private bool moduleSolved;
-    string[][] paragraphs = new string[][]
+    string[][] paragraphs = new string[10][]
     { 
         new string[] { "lorem","ipsum","dolor","sit","amet","consectetur","adipiscing","elit","nam","condimentum","lorem","quis","volutpat","lobortis","nunc","suscipit","odio","velit","sed","tempor","mauris","ullamcorper","id","interdum","et","malesuada","fames","ac","ante","ipsum","primis","in","faucibus","proin","nec","magna","ut","ligula","euismod","efficitur","in","sed","est","pellentesque","pulvinar","bibendum","viverra","pellentesque","aliquet","sapien","quis","elit","tincidunt","vitae","pretium","turpis","ullamcorper","nam","vehicula","lectus","eu","orci","tempus","ultricies","nulla","eu","sem","lacus"  },
         new string[] { "integer","eros","arcu","fermentum","vel","ipsum","eu","mattis","commodo","tortor","donec","bibendum","dapibus","risus","non","sodales","duis","ultricies","ullamcorper","eros","nunc","at","metus","diam","in","tincidunt","felis","at","nunc","accumsan","tincidunt","dapibus","ante","ultricies","suspendisse","potenti","ut","vitae","tempor","ex","sed","volutpat","magna","quis","odio","blandit","auctor","donec","scelerisque","diam","at","semper","sagittis","leo","quam","lobortis","massa","at","efficitur","augue","leo","quis","lacus" },
@@ -33,7 +33,7 @@ public class NewlineScript : MonoBehaviour {
         new string[] { "donec","mollis","est","eget","justo","faucibus","in","ultricies","lectus","bibendum","nunc","ornare","sagittis","erat","non","sagittis","massa","vehicula","sed","phasellus","cursus","ligula","vitae","justo","dictum","maximus","fusce","mattis","maximus","sapien","non","euismod","leo","aliquet","id","cras","sodales","vulputate","tortor","quis","placerat","risus","porttitor","vel","phasellus","in","purus","ut","risus","imperdiet","imperdiet","sed","ipsum","metus","malesuada","quis","mauris","vitae","tincidunt","auctor","neque","in","nec","gravida","felis"},
         new string[] { "duis","justo","leo","porta","ac","ante","id","ornare","gravida","metus","sed","accumsan","egestas","enim","convallis","pretium","pellentesque","ut","elementum","tortor","scelerisque","faucibus","lectus","praesent","pellentesque","euismod","mattis","mauris","ornare","condimentum","elit","vel","dictum","aenean","in","ipsum","porttitor","scelerisque","felis","sed","suscipit","sapien","suspendisse","et","enim","euismod","tempor","sem","in","bibendum","sapien","nulla","facilisi","donec","id","nibh","posuere","dictum","libero","ut","rhoncus","justo","nunc","consectetur","ut","purus","consectetur","vehicula"}, 
         new string[] { "mauris","dapibus","arcu","non","erat","dapibus","at","porttitor","lacus","pretium","quisque","posuere","aliquam","bibendum","etiam","cursus","vestibulum","lacinia","donec","tempor","et","metus","interdum","vulputate","fusce","elementum","sagittis","nisl","sit","amet","varius","orci","dignissim","quis","vestibulum","hendrerit","sit","amet","enim","vitae","venenatis","nam","magna","nunc","suscipit","non","congue","ac","porta","et","tortor"},
-    }; //10 paragraphs total
+    };
     int startingPara;
     int numWordsFromFirst;
     int numWordsFromSecond;
@@ -188,24 +188,26 @@ public class NewlineScript : MonoBehaviour {
 
     void LeftPress()
     {
-        StopCoroutine(Blink);
-        Blink = StartCoroutine(CursorBlink());
+        if (Blink != null)
+            StopCoroutine(Blink);
         Audio.PlaySoundAtTransform("keyPress", transform);
         leftBtn.AddInteractionPunch(0.1f);
         if (moduleSolved || (posInString == 0))
             return;
+        Blink = StartCoroutine(CursorBlink());
         posInString--;
         GenerateOverlay();
         DisplayInfo();
     }
     void RightPress()
     {
-        StopCoroutine(Blink);
-        Blink = StartCoroutine(CursorBlink());
+        if (Blink != null)
+            StopCoroutine(Blink);
         leftBtn.AddInteractionPunch(0.2f);
         Audio.PlaySoundAtTransform("keyPress", transform);
         if (moduleSolved || (posInString == fullStringArray.Length - 2))
             return;
+        Blink = StartCoroutine(CursorBlink());
         posInString++;
         GenerateOverlay();
         DisplayInfo();
@@ -236,16 +238,21 @@ public class NewlineScript : MonoBehaviour {
             enterBtn.OnInteract();
             yield return new WaitForSeconds(0.1f);
         }
-        else if ((parameters[0] == "LEFT" || parameters[0] == "RIGHT") && parameters.Count == 2 && parameters[1].All(x => "1234567890".Contains(x)))
+        else if (Regex.IsMatch(Command, @"^(LEFT|RIGHT)\s+[0-9]+$"))
         {
             yield return null;
             KMSelectable whichButton = (parameters[0] == "LEFT") ? leftBtn : rightBtn;
-            for (int i = 0; i < int.Parse(parameters[1]); i++)
+            int count;
+            if (int.TryParse(parameters[1], out count))
             {
-                whichButton.OnInteract();
-                yield return "trycancel how the fuck are you doing this which one of you fuckers put that large of a number in that you need to !cancel. What.";
-                yield return new WaitForSeconds(0.1f);
+                for (int i = 0; i < int.Parse(parameters[1]); i++)
+                {
+                    whichButton.OnInteract();
+                    yield return "trycancel how the fuck are you doing this which one of you fuckers put that large of a number in that you need to !cancel. What.";
+                    yield return new WaitForSeconds(0.1f);
+                }
             }
+            else yield return "sendtochaterror Not so fast big bucko.";
         }
     }
 
