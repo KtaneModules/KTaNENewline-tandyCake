@@ -43,14 +43,12 @@ public class NewlineScript : MonoBehaviour {
     string secondParaString;
     string fullString;
     string[] fullStringArray;
-    string[] answerArray;
     List<int> spacePositions = new List<int>();
     List<int> spacePositionsInFull = new List<int>();
     int posInString;
     int answerPosition;
     string displayString;
     string overlayString;
-    string placeholderString;
     private Coroutine Blink;
 
 
@@ -94,6 +92,7 @@ public class NewlineScript : MonoBehaviour {
     {
         answerPosition = numWordsFromFirst - 1;
         posInString = UnityEngine.Random.Range(0, fullStringArray.Length);
+        Debug.LogFormat("<Newline #{0}> The cursor begins at position {1}", moduleId, posInString + 1);
         Debug.LogFormat("[Newline #{0}] You should insert a newline at the {1}th space in the string.", moduleId, answerPosition + 1);
     }
     void GenerateOverlay()
@@ -192,9 +191,9 @@ public class NewlineScript : MonoBehaviour {
             StopCoroutine(Blink);
         Audio.PlaySoundAtTransform("keyPress", transform);
         leftBtn.AddInteractionPunch(0.1f);
+        Blink = StartCoroutine(CursorBlink());
         if (moduleSolved || (posInString == 0))
             return;
-        Blink = StartCoroutine(CursorBlink());
         posInString--;
         GenerateOverlay();
         DisplayInfo();
@@ -205,9 +204,9 @@ public class NewlineScript : MonoBehaviour {
             StopCoroutine(Blink);
         leftBtn.AddInteractionPunch(0.2f);
         Audio.PlaySoundAtTransform("keyPress", transform);
+        Blink = StartCoroutine(CursorBlink());
         if (moduleSolved || (posInString == fullStringArray.Length - 2))
             return;
-        Blink = StartCoroutine(CursorBlink());
         posInString++;
         GenerateOverlay();
         DisplayInfo();
@@ -233,7 +232,7 @@ public class NewlineScript : MonoBehaviour {
     {
         string Command = input.Trim().ToUpperInvariant();
         List<string> parameters = Command.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        if (new string[] { "ENTER", "SUBMIT", "RETURN", "RTN", "BREAK", "NEWLINE", "CHECK" }.Contains(Command))
+        if (Command.EqualsAny("ENTER", "SUBMIT", "RETURN", "RTN", "BREAK", "NEWLINE", "CHECK"))
         {
             enterBtn.OnInteract();
             yield return new WaitForSeconds(0.1f);
